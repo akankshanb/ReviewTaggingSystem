@@ -43,6 +43,14 @@ def private_assignment_creation_setup
 	fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
 end
 
+def public_assignment_creation_setup
+	login_as("instructor6")
+	visit '/assignments/new?private=0'
+	fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
+	select('Course 2', from: 'assignment_form_assignment_course_id')
+	fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+end
+
 def create_deadline_types
 	set_deadline_type
 	set_deadline_right
@@ -85,7 +93,7 @@ describe "assignment creation page", js: true do
 	end
 
 	it "is able to create with teams" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		check("team_assignment")
 		check("assignment_form_assignment_show_teammate_reviews")
 		fill_in 'assignment_form_assignment_max_team_size', with: 3
@@ -100,7 +108,7 @@ describe "assignment creation page", js: true do
 	end
 	# instructor can check "has quiz" box and set the number of quiz questions
 	it "is able to create with quiz" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		check("assignment_form_assignment_require_quiz")
 		click_button 'Create'
 		fill_in 'assignment_form_assignment_num_quiz_questions', with: 3
@@ -115,7 +123,7 @@ describe "assignment creation page", js: true do
 
 	it "is able to create with staggered deadline" do
 		skip('skip test on staggered deadline temporarily')
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		begin
 			check("assignment_form_assignment_staggered_deadline")
 		rescue StandardError
@@ -135,7 +143,7 @@ describe "assignment creation page", js: true do
 
 	## should be able to create with review visible to all reviewres
 	it "is able to create with review visible to all reviewers" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		fill_in 'assignment_form_assignment_spec_location', with: 'testLocation'
 		check('assignment_form_assignment_reviews_visible_to_all')
 		click_button 'Create'
@@ -151,7 +159,7 @@ describe "assignment creation page", js: true do
 	end
 
 	it "is able to create public micro-task assignment" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		check('assignment_form_assignment_microtask')
 		click_button 'Create'
 
@@ -161,7 +169,7 @@ describe "assignment creation page", js: true do
 		)
 	end
 	it "is able to create calibrated public assignment" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 		check("assignment_form_assignment_is_calibrated")
 		click_button 'Create'
 
@@ -171,28 +179,21 @@ describe "assignment creation page", js: true do
 		)
 	end
 	it "is able show tab review strategy" do
-		private_assignment_creation_setup()
+		private_assignment_creation_setup
 
 		find_link('ReviewStrategy').click
 		expect(page).to have_content("Review strategy")
 	end
 
 	it "is able show tab due deadlines" do
-		login_as("instructor6")
-		visit '/assignments/new?private=0'
-		fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
-		select('Course 2', from: 'assignment_form_assignment_course_id')
-		fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+		public_assignment_creation_setup
 
 		find_link('Due date').click
 		expect(page).to have_content("Deadline type")
 	end
 	it "set the deadline for an assignment review" do
-		login_as("instructor6")
-		visit '/assignments/new?private=0'
-		fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
-		select('Course 2', from: 'assignment_form_assignment_course_id')
-		fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+		public_assignment_creation_setup
+
 		click_link 'Due date'
 		fill_in 'assignment_form_assignment_rounds_of_reviews', with: '1'
 		click_button 'set_rounds'
@@ -217,34 +218,21 @@ describe "assignment creation page", js: true do
 	end
 
 	it "is able show tab rubrics" do
-		login_as("instructor6")
-		visit '/assignments/new?private=0'
-		fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
-		select('Course 2', from: 'assignment_form_assignment_course_id')
-		fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+		public_assignment_creation_setup
 
 		find_link('Rubrics').click
 		expect(page).to have_content("rubric varies by round")
 	end
 
 	it "is able show attributes in rubrics" do
-		login_as("instructor6")
-		visit '/assignments/new?private=0'
-		fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
-		select('Course 2', from: 'assignment_form_assignment_course_id')
-		fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+		public_assignment_creation_setup
 
 		find_link('Rubrics').click
 		expect(page).to have_content("rubric varies by round")
 	end
 
 	it "sets attributes for review strategy auto selects" do
-		login_as("instructor6")
-		visit '/assignments/new?private=0'
-
-		fill_in 'assignment_form_assignment_name', with: 'public assignment for test'
-		select('Course 2', from: 'assignment_form_assignment_course_id')
-		fill_in 'assignment_form_assignment_directory_path', with: 'testDirectory'
+		public_assignment_creation_setup
 
 		find_link('ReviewStrategy').click
 		select "Auto-Selected", from: 'assignment_form_assignment_review_assignment_strategy'
@@ -545,7 +533,6 @@ describe "rubrics tab", js: true do
 			)
 		end
 
-		##
 		# Third row of rubric
 		it "updates teammate review questionnaire" do
 			within("tr#questionnaire_table_TeammateReviewQuestionnaire") do
@@ -587,7 +574,7 @@ describe "review strategy tab", js: true do
 		)
 	end
 
-	# instructor assign reviews will happen only one time, so the data will not be store in DB.
+	# instructor assign reviews will happen only one time, so the data will not be stored in DB.
 	it "sets number of reviews by each student" do
 		pending('review section not yet completed')
 		login_as("instructor6")
